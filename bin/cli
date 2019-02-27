@@ -1,0 +1,55 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require 'thor'
+require 'date'
+require_relative '../lib/orgamax_exporter'
+
+class CLI < Thor
+  include Thor::Actions
+
+  desc "init", "Initialize configuration for exports"
+  def init
+    orgamax_path = ask("Enter Orgamax path:", default: 'C:\ProgramData\Deltra\orgaMAX')
+    export_path  = ask("Specify export path (separate multiple paths by comma):", default: '.\exports,R:\Backup').split(',')
+    db_id        = ask("Enter DB-ID:", default: 1)
+    export_offers = to_bool ask("Export Angebote? (Y or N)", default: 'N')
+    export_receipts = to_bool ask("Export Zahlungen? (Y or N)", default: 'Y')
+
+    e = OrgamaxExporter.new
+    e.init(orgamax_path, export_path, db_id, export_offers, export_receipts)
+  end
+
+  desc "export", "Start export of files"
+  def export
+    export_all = to_bool ask("Export all files? (Y or N)", default: 'N')
+    export_year = nil
+    export_month = nil
+
+    unless export_all
+      begin
+        export_year = Integer(ask("Enter year (4-digits):", default: Time.now.strftime("%Y")))
+        export_month = Integer(ask("Enter month digit without preceeding zero (1-12):", default: DateTime.now.prev_month(1).month))
+      rescue ArgumentError
+        raise Thor::Error.new("Invalid year or month digit entered.")
+      end
+    end
+
+    e = OrgamaxExporter.new
+    e.export export_all, export_year, export_month
+  end
+
+  private
+
+  def to_bool(value)
+    value = value.downcase
+    if %w(y 1 true t).include? value
+      true
+    else
+      false
+    end
+  end
+end
+
+
+CLI.start(ARGV)
