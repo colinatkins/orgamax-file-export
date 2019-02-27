@@ -1,5 +1,5 @@
 # Unofficial File Exporter for Orgamax
-Inofficial File Exporter for Orgamax
+With this small CLI script you can copy files organized within Orgamax to any backup path you want them to be copied to. This is especially useful if you want to send receipts to your tax accountant.
 
 ## Dependencies
 
